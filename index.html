@@ -1971,8 +1971,10 @@
             items.forEach((item) => {
                 const itemEl = document.createElement('div');
                 itemEl.className = `roll-item ${item.rarity}`;
-                const imageStyle = item.brightness ? `style="filter: brightness(${item.brightness})"` : '';
-                const imagePath = getItemImagePath(item);
+                // Extraordinary items show the gold mystery image in the roll strip
+                const isGold = item.rarity === 'extraordinary';
+                const imagePath = isGold ? 'images/gold.webp' : getItemImagePath(item);
+                const imageStyle = (!isGold && item.brightness) ? `style="filter: brightness(${item.brightness})"` : '';
                 itemEl.innerHTML = `
                     <div class="roll-item-image">
                         <img src="${imagePath}" alt="${item.name}" ${imageStyle}>
@@ -2049,8 +2051,9 @@
             if (item.brightness) imageStyle += `filter: brightness(${item.brightness});`;
             if (item.imageScale) imageStyle += ` transform: scale(${item.imageScale});`;
 
-            const imagePath = getItemImagePath(item);
-            document.getElementById('winImage').innerHTML = `<img src="${imagePath}" alt="${item.name}" style="${imageStyle} max-width:90%; max-height:90%; object-fit:contain;">`;
+            // Extraordinary shows gold mystery image in the reveal screen, real skin goes to inventory
+            const revealImagePath = item.rarity === 'extraordinary' ? 'images/gold.webp' : getItemImagePath(item);
+            document.getElementById('winImage').innerHTML = `<img src="${revealImagePath}" alt="${item.name}" style="max-width:90%; max-height:90%; object-fit:contain;">`;
 
             winOverlay.classList.add('active');
 
