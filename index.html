@@ -267,13 +267,7 @@
             flex-direction: column;
             position: relative;
             overflow: visible;
-            margin-bottom: 30px;
-        }
-
-        .item-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 48px;
         }
 
         .item-card.consumer-grade { border-bottom: 4.5px solid #aaaaaa; }
@@ -305,20 +299,32 @@
 
         .item-info {
             position: absolute;
-            bottom: -30px;
+            top: calc(100% + 10px);
             left: 0;
             right: 0;
             text-align: left;
         }
 
         .item-name {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.9);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             padding: 0 5px;
+            line-height: 1.3;
+        }
+
+        .item-skin {
+            font-size: 12px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 5px;
+            line-height: 1.3;
         }
 
         .item-type {
@@ -1442,16 +1448,64 @@
             'restricted': 3, 'mil-spec': 4, 'industrial-grade': 5, 'consumer-grade': 6
         };
 
-        const gunTypeOrderHighToLow = {
-            'Case': 0, 'Knife': 1, 'Gloves': 2, 'Sniper Rifle': 3,
-            'Rifle': 4, 'Shotgun': 5, 'Machine Gun': 6, 'SMG': 7, 'Pistol': 8
+        // Weapon type order used as tiebreaker (priority 2) within the same rarity
+        // Lower number = higher up
+        const gunTypeOrder = {
+            'Knife': 0, 'Gloves': 1, 'Sniper Rifle': 2,
+            'Rifle': 3, 'Shotgun': 4, 'Machine Gun': 5, 'SMG': 6, 'Pistol': 7
         };
 
-        const gunTypeOrderLowToHigh = {
-            'Pistol': 0, 'SMG': 1, 'Machine Gun': 2, 'Shotgun': 3,
-            'Rifle': 4, 'Sniper Rifle': 5, 'Knife': 6, 'Gloves': 7, 'Case': 8
-        };
+        function sortInventory(sortType) {
+            currentSort = sortType;
+            const sortedCards = [...inventoryCards].sort((a, b) => {
+                const itemA = a.itemData;
+                const itemB = b.itemData;
 
+                if (sortType === 'newest') return itemA.originalIndex - itemB.originalIndex;
+
+                if (sortType === 'rarity-down') {
+                    // Cases always pinned to top
+                    if (itemA.type === 'Case' && itemB.type !== 'Case') return -1;
+                    if (itemB.type === 'Case' && itemA.type !== 'Case') return 1;
+
+                    // Priority 1: rarity (lower rarityOrder number = higher rarity = higher up)
+                    const rarityA = rarityOrder[itemA.rarity] ?? 99;
+                    const rarityB = rarityOrder[itemB.rarity] ?? 99;
+                    if (rarityA !== rarityB) return rarityA - rarityB;
+
+                    // Priority 2: weapon type
+                    const typeA = gunTypeOrder[itemA.type] ?? 99;
+                    const typeB = gunTypeOrder[itemB.type] ?? 99;
+                    if (typeA !== typeB) return typeA - typeB;
+
+                    // Priority 3: alphabetical
+                    return itemA.name.localeCompare(itemB.name);
+                }
+
+                if (sortType === 'rarity-up') {
+                    // Cases always pinned to bottom
+                    if (itemA.type === 'Case' && itemB.type !== 'Case') return 1;
+                    if (itemB.type === 'Case' && itemA.type !== 'Case') return -1;
+
+                    // Priority 1: rarity (higher rarityOrder number = lower rarity = higher up)
+                    const rarityA = rarityOrder[itemA.rarity] ?? 99;
+                    const rarityB = rarityOrder[itemB.rarity] ?? 99;
+                    if (rarityA !== rarityB) return rarityB - rarityA;
+
+                    // Priority 2: weapon type (reversed)
+                    const typeA = gunTypeOrder[itemA.type] ?? 99;
+                    const typeB = gunTypeOrder[itemB.type] ?? 99;
+                    if (typeA !== typeB) return typeB - typeA;
+
+                    // Priority 3: alphabetical
+                    return itemA.name.localeCompare(itemB.name);
+                }
+
+                return 0;
+            });
+            inventoryGrid.innerHTML = '';
+            sortedCards.forEach(card => inventoryGrid.appendChild(card));
+        }
         function renderInventory() {
             inventoryGrid.innerHTML = '';
             inventoryCards = [];
@@ -1497,12 +1551,18 @@
             const isCase = item.type === 'Case';
             const imagePath = getItemImagePath(item);
 
+            // Split "Weapon | Skin Name" into two parts
+            const nameParts = item.name.split(' | ');
+            const weaponLabel = nameParts[0];
+            const skinLabel = nameParts.length > 1 ? nameParts.slice(1).join(' | ') : '';
+
             card.innerHTML = `
                 <div class="item-image-container${isCase ? ' case-item' : ''}">
                     <img src="${imagePath}" alt="${item.name}" class="item-image" ${imageStyle}>
                 </div>
                 <div class="item-info">
-                    <div class="item-name">${item.name}</div>
+                    <div class="item-name">${weaponLabel}</div>
+                    ${skinLabel ? `<div class="item-skin">${skinLabel}</div>` : ''}
                 </div>
             `;
 
@@ -1523,33 +1583,6 @@
                     opt.classList.remove('active');
                 }
             });
-        }
-
-        function sortInventory(sortType) {
-            currentSort = sortType;
-            const sortedCards = [...inventoryCards].sort((a, b) => {
-                const itemA = a.itemData;
-                const itemB = b.itemData;
-                if (sortType === 'newest') return itemA.originalIndex - itemB.originalIndex;
-                if (sortType === 'rarity-down') {
-                    const typeOrderA = gunTypeOrderHighToLow[itemA.type] ?? 999;
-                    const typeOrderB = gunTypeOrderHighToLow[itemB.type] ?? 999;
-                    if (typeOrderA !== typeOrderB) return typeOrderA - typeOrderB;
-                    const rarityA = rarityOrder[itemA.rarity];
-                    const rarityB = rarityOrder[itemB.rarity];
-                    if (rarityA !== rarityB) return rarityA - rarityB;
-                    return itemA.name.localeCompare(itemB.name);
-                }
-                if (sortType === 'rarity-up') {
-                    const typeOrderA = gunTypeOrderLowToHigh[itemA.type] ?? 999;
-                    const typeOrderB = gunTypeOrderLowToHigh[itemB.type] ?? 999;
-                    if (typeOrderA !== typeOrderB) return typeOrderA - typeOrderB;
-                    return itemA.name.localeCompare(itemB.name);
-                }
-                return 0;
-            });
-            inventoryGrid.innerHTML = '';
-            sortedCards.forEach(card => inventoryGrid.appendChild(card));
         }
 
         const sortDropdown = document.getElementById('sortDropdown');
