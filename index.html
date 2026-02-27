@@ -790,7 +790,7 @@
             display: flex;
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
+            margin-top: -90px;
             left: 0;
             gap: 8px;
             will-change: transform;
@@ -1949,17 +1949,18 @@
             // 2. Build the strip
             const ITEM_WIDTH = 198; // 190px wide + 8px gap
             const TOTAL_ITEMS = 60;
-
-            // We'll place the winning item at index WIN_INDEX
-            // and scroll so it's centered under the selector
             const WIN_INDEX = 45; // near the end for dramatic effect
+
+            // Filler slots NEVER show extraordinary/gold — regardless of what you win
+            // Gold can only ever appear at WIN_INDEX when you actually won extraordinary
+            const fillerPool = lootPool.filter(item => item.rarity !== 'extraordinary');
 
             const items = [];
             for (let i = 0; i < TOTAL_ITEMS; i++) {
                 if (i === WIN_INDEX) {
                     items.push({ ...winningItem });
                 } else {
-                    items.push(selectRandomItem(lootPool));
+                    items.push(selectRandomItem(fillerPool));
                 }
             }
 
