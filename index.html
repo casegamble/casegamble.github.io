@@ -276,7 +276,7 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
 
-        .item-card.consumer-grade { border-bottom: 4.5px solid #b0c3d9; }
+        .item-card.consumer-grade { border-bottom: 4.5px solid #aaaaaa; }
         .item-card.industrial-grade { border-bottom: 4.5px solid #5e98d9; }
         .item-card.mil-spec { border-bottom: 4.5px solid #4b69ff; }
         .item-card.restricted { border-bottom: 4.5px solid #8847ff; }
@@ -388,7 +388,7 @@
             border-radius: 2px;
         }
 
-        .rarity-bar.consumer-grade { background: #b0c3d9; }
+        .rarity-bar.consumer-grade { background: #aaaaaa; }
         .rarity-bar.industrial-grade { background: #5e98d9; }
         .rarity-bar.mil-spec { background: #4b69ff; }
         .rarity-bar.restricted { background: #8847ff; }
@@ -719,7 +719,7 @@
 
         .roll-viewport {
             width: 100%;
-            height: 300px;
+            height: 220px;
             position: relative;
             overflow: hidden;
             margin: 40px 0;
@@ -792,7 +792,7 @@
 
         .roll-item {
             width: 190px;
-            height: 260px;
+            height: 180px;
             background: linear-gradient(180deg, rgba(60, 55, 50, 0.6) 0%, rgba(40, 35, 30, 0.8) 50%, rgba(20, 18, 15, 0.95) 100%);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 4px;
@@ -815,7 +815,7 @@
             border-radius: 0 0 4px 4px;
         }
 
-        .roll-item.consumer-grade::after { background: #b0c3d9; }
+        .roll-item.consumer-grade::after { background: #aaaaaa; }
         .roll-item.industrial-grade::after { background: #5e98d9; }
         .roll-item.mil-spec::after { background: #4b69ff; }
         .roll-item.restricted::after { background: #8847ff; }
@@ -833,7 +833,7 @@
 
         .roll-item-image img {
             max-width: 90%;
-            max-height: 130px;
+            max-height: 90px;
             object-fit: contain;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
         }
@@ -1385,11 +1385,6 @@
     <script>
         // ========================================
         // RESET ALL USER DATA
-        // ========================================
-        localStorage.removeItem('userCases');
-        localStorage.removeItem('userWins');
-        localStorage.removeItem('sortPreference');
-
         const availableCases = [
             { id: 'snakebite', name: 'Snakebite Case', imageName: 'snakebite.webp' }
         ];
@@ -1500,7 +1495,7 @@
             const imageStyle = styles.length > 0 ? `style="${styles.join('; ')};"` : '';
 
             const isCase = item.type === 'Case';
-            const imagePath = isCase ? `images/${item.imageName}` : `images/weapons/${item.imageName}`;
+            const imagePath = getItemImagePath(item);
 
             card.innerHTML = `
                 <div class="item-image-container${isCase ? ' case-item' : ''}">
@@ -1588,7 +1583,9 @@
         function openInspectModal(item, isDeletable = false) {
             currentModalItem = item;
             const weaponName = item.name;
-            const rarityText = (item.rarity || 'special').toUpperCase().replace(/-/g, ' ');
+            const rarityText = item.rarity === 'consumer-grade'
+                ? 'STANDARD'
+                : (item.rarity || 'special').toUpperCase().replace(/-/g, ' ');
 
             if (item.rarity === 'extraordinary') {
                 document.getElementById('modalWeaponName').textContent = `★ ${weaponName} ★`;
@@ -1615,7 +1612,7 @@
             if (item.brightness) modalStyles.push(`filter: brightness(${item.brightness})`);
 
             const isCase = item.type === 'Case';
-            const imagePath = isCase ? `images/${item.imageName}` : `images/weapons/${item.imageName}`;
+            const imagePath = getItemImagePath(item);
             const modalStyleStr = modalStyles.length > 0 ? modalStyles.join('; ') + ';' : '';
             const modalSize = isCase ? '90%' : '70%';
             modalDisplay.innerHTML = `<img src="${imagePath}" alt="${item.name}" style="max-width: ${modalSize}; max-height: ${modalSize}; object-fit: contain; display: block; margin: auto; ${modalStyleStr}">`;
@@ -1697,7 +1694,7 @@
             itemsContainer.innerHTML = '';
 
             const rarityNames = {
-                'extraordinary': '★ EXTRAORDINARY (RARE SPECIAL ITEMS) ★',
+                'extraordinary': '★ EXTRAORDINARY (KNIVES & GLOVES) ★',
                 'covert': 'COVERT', 'classified': 'CLASSIFIED',
                 'restricted': 'RESTRICTED', 'mil-spec': 'MIL-SPEC'
             };
@@ -1722,7 +1719,7 @@
                     const imageStyle = item.brightness ? `style="filter: brightness(${item.brightness})"` : '';
                     itemDiv.innerHTML = `
                         <div class="case-details-item-image">
-                            <img src="images/weapons/${item.imageName}" alt="${item.name}" ${imageStyle}>
+                            <img src="${getItemImagePath(item)}" alt="${item.name}" ${imageStyle}>
                         </div>
                         <div class="case-details-item-name">${item.name}</div>
                     `;
@@ -1814,49 +1811,83 @@
         // ========================================
         const caseLootPools = {
             'snakebite': [
-                { name: 'UMP-45 | Oscillator', type: 'SMG', rarity: 'mil-spec', imageName: 'ump-45.webp', weight: 11.42 },
-                { name: 'Nova | Windblown', type: 'Shotgun', rarity: 'mil-spec', imageName: 'nova.webp', weight: 11.42 },
-                { name: 'M249 | O.S.I.P.R.', type: 'Machine Gun', rarity: 'mil-spec', imageName: 'm249.webp', weight: 11.42 },
-                { name: 'SG 553 | Heavy Metal', type: 'Rifle', rarity: 'mil-spec', imageName: 'sg-553.webp', weight: 11.42 },
-                { name: 'CZ75-Auto | Circaetus', type: 'Pistol', rarity: 'mil-spec', imageName: 'cz75-auto.webp', weight: 11.42 },
-                { name: 'R8 Revolver | Junk Yard', type: 'Pistol', rarity: 'mil-spec', imageName: 'r8-revolver.webp', weight: 11.42 },
-                { name: 'Glock-18 | Clear Polymer', type: 'Pistol', rarity: 'mil-spec', imageName: 'glock-18.webp', weight: 11.40 },
-                { name: 'Negev | dev_texture', type: 'Machine Gun', rarity: 'restricted', imageName: 'negev.webp', weight: 3.2 },
-                { name: 'P250 | Cyber Shell', type: 'Pistol', rarity: 'restricted', imageName: 'p250.webp', weight: 3.2 },
-                { name: 'MAC-10 | Button Masher', type: 'SMG', rarity: 'restricted', imageName: 'mac-10.webp', weight: 3.2 },
-                { name: 'Desert Eagle | Trigger Discipline', type: 'Pistol', rarity: 'restricted', imageName: 'desert-eagle.webp', weight: 3.2 },
-                { name: 'AK-47 | Slate', type: 'Rifle', rarity: 'restricted', imageName: 'ak-47.webp', weight: 3.18 },
-                { name: 'XM1014 | XOXO', type: 'Shotgun', rarity: 'classified', imageName: 'xm1014.webp', weight: 1.07 },
-                { name: 'MP9 | Food Chain', type: 'SMG', rarity: 'classified', imageName: 'mp9.webp', weight: 1.07 },
-                { name: 'Galil AR | Chromatic Aberration', type: 'Rifle', rarity: 'classified', imageName: 'galil-ar.webp', weight: 1.06 },
-                { name: 'M4A4 | In Living Color', type: 'Rifle', rarity: 'covert', imageName: 'm4a4.webp', weight: 0.32 },
-                { name: 'USP-S | The Traitor', type: 'Pistol', rarity: 'covert', imageName: 'usp-s.webp', weight: 0.32 },
-                { name: '★ Sport Gloves | Arid', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Sport Gloves | Big Game', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Sport Gloves | Hedge Maze', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Sport Gloves | Pandora\'s Box', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Driver Gloves | Crimson Weave', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Driver Gloves | Imperial Plaid', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Hand Wraps | Cobalt Skulls', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Hand Wraps | Constrictor', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Moto Gloves | Boom!', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Moto Gloves | Eclipse', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Specialist Gloves | Crimson Kimono', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Specialist Gloves | Crimson Web', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Specialist Gloves | Fade', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Specialist Gloves | Foundation', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Bloodhound Gloves | Charred', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Bloodhound Gloves | Snakebite', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Broken Fang Gloves | Jade', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Broken Fang Gloves | Needle Point', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Broken Fang Gloves | Unhinged', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Broken Fang Gloves | Yellow-banded', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Hydra Gloves | Case Hardened', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Hydra Gloves | Emerald', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
-                { name: '★ Hydra Gloves | Mangrove', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', imageScale: 1.25, offsetX: 7.5, offsetY: 7.5, brightness: 0.5, weight: 0.0108 },
-                { name: '★ Hydra Gloves | Rattler', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', brightness: 0.5, weight: 0.0108 },
+                // skinImageName = the skin-specific image. imageName = base weapon fallback.
+                { name: 'UMP-45 | Oscillator', type: 'SMG', rarity: 'mil-spec', imageName: 'ump-45.webp', skinImageName: 'skin-ump45-oscillator.webp', weight: 11.42 },
+                { name: 'Nova | Windblown', type: 'Shotgun', rarity: 'mil-spec', imageName: 'nova.webp', skinImageName: 'skin-nova-windblown.webp', weight: 11.42 },
+                { name: 'M249 | O.S.I.P.R.', type: 'Machine Gun', rarity: 'mil-spec', imageName: 'm249.webp', skinImageName: 'skin-m249-osipr.webp', weight: 11.42 },
+                { name: 'SG 553 | Heavy Metal', type: 'Rifle', rarity: 'mil-spec', imageName: 'sg-553.webp', skinImageName: 'skin-sg553-heavymetal.webp', weight: 11.42 },
+                { name: 'CZ75-Auto | Circaetus', type: 'Pistol', rarity: 'mil-spec', imageName: 'cz75-auto.webp', skinImageName: 'skin-cz75-circaetus.webp', weight: 11.42 },
+                { name: 'R8 Revolver | Junk Yard', type: 'Pistol', rarity: 'mil-spec', imageName: 'r8-revolver.webp', skinImageName: 'skin-r8-junkyard.webp', weight: 11.42 },
+                { name: 'Glock-18 | Clear Polymer', type: 'Pistol', rarity: 'mil-spec', imageName: 'glock-18.webp', skinImageName: 'skin-glock18-clearpolymer.webp', weight: 11.40 },
+                { name: 'Negev | dev_texture', type: 'Machine Gun', rarity: 'restricted', imageName: 'negev.webp', skinImageName: 'skin-negev-devtexture.webp', weight: 3.2 },
+                { name: 'P250 | Cyber Shell', type: 'Pistol', rarity: 'restricted', imageName: 'p250.webp', skinImageName: 'skin-p250-cybershell.webp', weight: 3.2 },
+                { name: 'MAC-10 | Button Masher', type: 'SMG', rarity: 'restricted', imageName: 'mac-10.webp', skinImageName: 'skin-mac10-buttonmasher.webp', weight: 3.2 },
+                { name: 'Desert Eagle | Trigger Discipline', type: 'Pistol', rarity: 'restricted', imageName: 'desert-eagle.webp', skinImageName: 'skin-deagle-triggerdiscipline.webp', weight: 3.2 },
+                { name: 'AK-47 | Slate', type: 'Rifle', rarity: 'restricted', imageName: 'ak-47.webp', skinImageName: 'skin-ak47-slate.webp', weight: 3.18 },
+                { name: 'XM1014 | XOXO', type: 'Shotgun', rarity: 'classified', imageName: 'xm1014.webp', skinImageName: 'skin-xm1014-xoxo.webp', weight: 1.07 },
+                { name: 'MP9 | Food Chain', type: 'SMG', rarity: 'classified', imageName: 'mp9.webp', skinImageName: 'skin-mp9-foodchain.webp', weight: 1.07 },
+                { name: 'Galil AR | Chromatic Aberration', type: 'Rifle', rarity: 'classified', imageName: 'galil-ar.webp', skinImageName: 'skin-galilar-chromaticaberration.webp', weight: 1.06 },
+                { name: 'M4A4 | In Living Color', type: 'Rifle', rarity: 'covert', imageName: 'm4a4.webp', skinImageName: 'skin-m4a4-inlivingcolor.webp', weight: 0.32 },
+                { name: 'USP-S | The Traitor', type: 'Pistol', rarity: 'covert', imageName: 'usp-s.webp', skinImageName: 'skin-usps-thetraitor.webp', weight: 0.32 },
+                // Knives (extraordinary)
+                { name: '★ Bayonet', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-bayonet.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Bowie Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-bowieknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Butterfly Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-butterflyknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Falchion Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-falchionknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Flip Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-flipknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Gut Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-gutknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Huntsman Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-huntsmanknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Karambit', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-karambit.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ M9 Bayonet', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-m9bayonet.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Navaja Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-navajaknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Nomad Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-nomadknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Paracord Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-paracordknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Shadow Daggers', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-shadowdaggers.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Skeleton Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-skeletonknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Stiletto Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-stilettoknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Survival Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-survivalknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Talon Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-talonknife.webp', brightness: 0.5, weight: 0.0054 },
+                { name: '★ Ursus Knife', type: 'Knife', rarity: 'extraordinary', imageName: 'knifet.webp', skinImageName: 'skin-ursusknife.webp', brightness: 0.5, weight: 0.0054 },
+                // Gloves — Broken Fang pool (extraordinary)
+                { name: '★ Broken Fang Gloves | Unhinged', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-brokenfanggloves-unhinged.webp', weight: 0.0108 },
+                { name: '★ Broken Fang Gloves | Jade', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-brokenfanggloves-jade.webp', weight: 0.0108 },
+                { name: '★ Broken Fang Gloves | Yellow-Whip', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-brokenfanggloves-yellowwhip.webp', weight: 0.0108 },
+                { name: '★ Broken Fang Gloves | Needle Point', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-brokenfanggloves-needlepoint.webp', weight: 0.0108 },
+                { name: '★ Sport Gloves | Slingshot', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-sportgloves-slingshot.webp', weight: 0.0108 },
+                { name: '★ Sport Gloves | Amphibious', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-sportgloves-amphibious.webp', weight: 0.0108 },
+                { name: '★ Sport Gloves | Vice', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-sportgloves-vice.webp', weight: 0.0108 },
+                { name: '★ Sport Gloves | Omega', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-sportgloves-omega.webp', weight: 0.0108 },
+                { name: '★ Driver Gloves | Snow Leopard', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-drivergloves-snowleopard.webp', weight: 0.0108 },
+                { name: '★ Driver Gloves | Rezan the Red', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-drivergloves-rezanthered.webp', weight: 0.0108 },
+                { name: '★ Driver Gloves | Queen Jaguar', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-drivergloves-queenjaguar.webp', weight: 0.0108 },
+                { name: '★ Driver Gloves | Overtake', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovest.webp', skinImageName: 'skin-drivergloves-overtake.webp', weight: 0.0108 },
+                // Gloves — Hydra/Case Hardened pool (extraordinary)
+                { name: '★ Hand Wraps | Slaughter', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-handwraps-slaughter.webp', weight: 0.0108 },
+                { name: '★ Hand Wraps | CAUTION!', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-handwraps-caution.webp', weight: 0.0108 },
+                { name: '★ Hand Wraps | Cobalt Skulls', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-handwraps-cobaltskulls.webp', weight: 0.0108 },
+                { name: '★ Hand Wraps | Arid', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-handwraps-arid.webp', weight: 0.0108 },
+                { name: '★ Specialist Gloves | Tiger Strike', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-specialistgloves-tigerstrike.webp', weight: 0.0108 },
+                { name: '★ Specialist Gloves | Crimson Web', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-specialistgloves-crimsonweb.webp', weight: 0.0108 },
+                { name: '★ Specialist Gloves | Field Agent', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-specialistgloves-fieldagent.webp', weight: 0.0108 },
+                { name: '★ Specialist Gloves | Fade', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-specialistgloves-fade.webp', weight: 0.0108 },
+                { name: '★ Moto Gloves | Blood Pressure', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-motogloves-bloodpressure.webp', weight: 0.0108 },
+                { name: '★ Moto Gloves | Smoke Out', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-motogloves-smokeout.webp', weight: 0.0108 },
+                { name: '★ Moto Gloves | 3rd Commando Company', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-motogloves-3rdcommandocompany.webp', weight: 0.0108 },
+                { name: '★ Moto Gloves | Spearmint', type: 'Gloves', rarity: 'extraordinary', imageName: 'glovesct.webp', skinImageName: 'skin-motogloves-spearmint.webp', weight: 0.0108 },
             ]
         };
+
+        // ========================================
+        // IMAGE PATH HELPER
+        // Skin drops use images/skins/skinImageName
+        // Default inventory uses images/weapons/imageName
+        // Cases use images/imageName
+        // ========================================
+        function getItemImagePath(item) {
+            if (item.type === 'Case') return `images/${item.imageName}`;
+            if (item.skinImageName) return `images/skins/${item.skinImageName}`;
+            return `images/weapons/${item.imageName}`;
+        }
 
         // ========================================
         // WEIGHTED RANDOM SELECTION
@@ -1908,7 +1939,7 @@
                 const itemEl = document.createElement('div');
                 itemEl.className = `roll-item ${item.rarity}`;
                 const imageStyle = item.brightness ? `style="filter: brightness(${item.brightness})"` : '';
-                const imagePath = `images/weapons/${item.imageName}`;
+                const imagePath = getItemImagePath(item);
                 itemEl.innerHTML = `
                     <div class="roll-item-image">
                         <img src="${imagePath}" alt="${item.name}" ${imageStyle}>
@@ -1985,7 +2016,7 @@
             if (item.brightness) imageStyle += `filter: brightness(${item.brightness});`;
             if (item.imageScale) imageStyle += ` transform: scale(${item.imageScale});`;
 
-            const imagePath = `images/weapons/${item.imageName}`;
+            const imagePath = getItemImagePath(item);
             document.getElementById('winImage').innerHTML = `<img src="${imagePath}" alt="${item.name}" style="${imageStyle} max-width:90%; max-height:90%; object-fit:contain;">`;
 
             winOverlay.classList.add('active');
@@ -2002,6 +2033,7 @@
             if (item.imageScale) wonItem.imageScale = item.imageScale;
             if (item.offsetX) wonItem.offsetX = item.offsetX;
             if (item.offsetY) wonItem.offsetY = item.offsetY;
+            if (item.skinImageName) wonItem.skinImageName = item.skinImageName;
 
             let userWins = JSON.parse(localStorage.getItem('userWins')) || [];
             userWins.push(wonItem);
